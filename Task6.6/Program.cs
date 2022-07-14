@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Task6._6
 {
@@ -8,26 +9,29 @@ namespace Task6._6
         {
             bool isWork = true;
             Player player = new Player();
+            Trader trader = new Trader();
             Console.WriteLine(GetRandomPhrase());
+            player.Money = 500;
+            trader.AddItems();
 
             while (isWork)
             {
-                Console.WriteLine("1.Купить товар. \n2.Просмотреть свой инвентарь.\n3.Покинуть лавку. \nВыберите вариант действия:");
+                Console.WriteLine("1.Купить товар. \n2.Просмотреть свой инвентарь. \n3.Просмотреть лавку. \n4.Покинуть лавку. \nВыберите вариант действия:");
                 string userInput = Console.ReadLine();
 
                 switch (userInput)
                 {
                     case "1":
-                        player.BuyProduct();
+                        trader.SellProduct(player);
                         break;
                     case "2":
                         player.ShowInventory();
                         break;
                     case "3":
-                        isWork = false;
+                        trader.ShowProducts();
                         break;
-                    default:
-                        player.WriteError();
+                    case "4":
+                        isWork = false;
                         break;
                 }
 
@@ -39,91 +43,63 @@ namespace Task6._6
 
         private static string GetRandomPhrase()
         {
-            Random r = new Random();
-            string[] phrases = new string[4] {"Добро пожаловать, путник. Что желаешь?", "Дешевые зелья! дешевые зелья! О, путник, что желаешь?", "Только у меня ты можешь купить камень силы. Что желаешь?", "Хм... Что тебе нужно?"};
-            string randomPhrase = phrases[r.Next(0,phrases.Length)];
+            Random random = new Random();
+            string[] phrases = new string[4] { 
+                "Добро пожаловать, путник. Что желаешь?", 
+                "Дешевые зелья! дешевые зелья! О, путник, что желаешь?", 
+                "Только у меня ты можешь купить камень силы. Что желаешь?", 
+                "Хм... Что тебе нужно?" };
+            string randomPhrase = phrases[random.Next(0, phrases.Length)];
             return randomPhrase;
         }
     }
 
     class Trader
     {
-        public Product[] Products = new Product[]
+        private List<Product> _products = new List<Product>();
+
+        public void AddItems()
         {
-            new Product("Еда", 5),
-            new Product("Вода", 1),
-            new Product("Лук", 60),
-            new Product("Меч", 10),
-            new Product("Сумка", 25),
-            new Product("Зелье", 5),
-            new Product("Зелье", 5),
-            new Product("Доспехи", 100),
-            new Product("Стрелы х60", 80),
-            new Product("Двуручный меч", 40),
-            new Product("Камень силы", 500)
-        };
+            _products.Add(new Product("Еда", 5));
+            _products.Add(new Product("Вода", 1));
+            _products.Add(new Product("Лук", 60));
+            _products.Add(new Product("Меч", 10));
+            _products.Add(new Product("Сумка", 25));
+            _products.Add(new Product("Зелье", 5));
+            _products.Add(new Product("Зелье", 5));
+            _products.Add(new Product("Доспехи", 100));
+            _products.Add(new Product("Стрелы х60", 80));
+            _products.Add(new Product("Двуручный меч", 40));
+            _products.Add(new Product("Камень силы", 500));
+        }
 
         public void ShowProducts()
         {
             Console.Clear();
 
-            for (int i = 0; i < Products.Length; i++)
+            for (int i = 0; i < _products.Count; i++)
             {
-                Products[i].ShowInfo((i + 1));
+                _products[i].ShowInfo((i + 1));
             }
 
             Console.WriteLine();
         }
-    }
 
-    class Player
-    {
-        private Trader _trader = new Trader();
-        private Product[] _inventory = new Product[0];
-        private int _money = 500;
-
-        public void BuyProduct()
+        public void SellProduct(Player player)
         {
             Console.Clear();
-            ChooseItem();
+            ShowProducts();
+            ChooseItem(player);
         }
 
-        public void ShowInventory()
+        private void ChooseItem(Player player)
         {
-            Console.Clear();
-
-            if (_inventory.Length > 0)
-            {
-                for (int i = 0; i < _inventory.Length; i++)
-                {
-                    _inventory[i].ShowInfo((i + 1));
-                }
-            }
-            else
-            {
-                Console.WriteLine("Инветарь пуст!");
-            }
-
-            Console.WriteLine("Количество золотых в сумке: " + _money);
-        }
-
-        public void WriteError()
-        {
-            ConsoleColor defaultColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Введите корректные данные.");
-            Console.ForegroundColor = defaultColor;
-        }
-
-        private void ChooseItem()
-        {
-            _trader.ShowProducts();
             Console.WriteLine("Чтобы купить товар, введите его порядковый номер:");
             string userInput = Console.ReadLine();
-            CheckExistingItem(userInput);
+            CheckExistingItem(userInput, player);
         }
 
-        private void CheckExistingItem(string userInput)
+        private void CheckExistingItem(string userInput, Player player)
         {
             bool isRepeating = true;
 
@@ -131,7 +107,7 @@ namespace Task6._6
             {
                 if (int.TryParse(userInput, out int number))
                 {
-                    if (number > _trader.Products.Length || number < 0)
+                    if (number > _products.Count || number < 0)
                     {
                         Console.WriteLine("Такого товара у продавца!");
                     }
@@ -139,14 +115,14 @@ namespace Task6._6
                     {
                         number -= 1;
 
-                        if (CheckMoney(number))
+                        if (CheckMoneyForBuy(number, player))
                         {
-                            if (number <= _trader.Products.Length && number >= 0)
+                            if (number <= _products.Count && number >= 0)
                             {
-                                BuyItem(number);
+                                SellItem(number, player);
                                 Console.Clear();
                                 Console.WriteLine("Товар успешно куплен!");
-                                Console.WriteLine("У вас осталось золота:" + _money);
+                                Console.WriteLine("У вас осталось золота:" + player.Money);
                                 return;
                             }
                         }
@@ -158,7 +134,7 @@ namespace Task6._6
                 }
                 else
                 {
-                    WriteError();
+                    Console.WriteLine("Данные некорректны");
                 }
 
                 Console.WriteLine("Чтобы купить товар, введите его порядковый номер:");
@@ -166,46 +142,52 @@ namespace Task6._6
             }
         }
 
-
-        private void BuyItem(int number)
+        private void SellItem(int number, Player player)
         {
-            _money -= _trader.Products[number].Price;
-            AddAt(number);
-            RemoveAt(number);
+            player.Money -= _products[number].Price;
+            player.AddInventoryItem(_products, number);
+            _products.RemoveAt(number);
         }
-
-        private void AddAt(int number)
+        private bool CheckMoneyForBuy(int number, Player player)
         {
-            Array.Resize(ref _inventory, _inventory.Length + 1);
-            _inventory[_inventory.Length - 1] = _trader.Products[number];
-        }
-
-        private void RemoveAt(int number)
-        {
-            Product[] newArray = new Product[_trader.Products.Length - 1];
-
-            for (int i = 0; i < number; i++)
-            {
-                newArray[i] = _trader.Products[i];
-            }
-
-            for (int i = number + 1; i < _trader.Products.Length; i++)
-            {
-                newArray[i - 1] = _trader.Products[i];
-            }
-
-            _trader.Products = newArray;
-        }
-
-        private bool CheckMoney(int number)
-        {
-            if (_money < _trader.Products[number].Price)
+            if (player.Money < _products[number].Price)
             {
                 Console.WriteLine("Недостаточно золотых для покупки товара.");
                 return false;
             }
 
             return true;
+        }
+    }
+
+    class Player
+    {
+        private List<Product> _inventory = new List<Product>();
+
+        public int Money { get; set; }
+
+        public void ShowInventory()
+        {
+            Console.Clear();
+
+            if (_inventory.Count > 0)
+            {
+                for (int i = 0; i < _inventory.Count; i++)
+                {
+                    _inventory[i].ShowInfo((i + 1));
+                }
+            }
+            else
+            {
+                Console.WriteLine("Инветарь пуст!");
+            }
+
+            Console.WriteLine("Количество золотых в сумке: " + Money);
+        }
+
+        public void AddInventoryItem(List<Product> _products, int number)
+        {
+            _inventory.Add(_products[number]);
         }
     }
 
