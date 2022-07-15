@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Task6._6
@@ -11,8 +11,6 @@ namespace Task6._6
             Player player = new Player();
             Trader trader = new Trader();
             Console.WriteLine(GetRandomPhrase());
-            player.Money = 500;
-            trader.AddItems();
 
             while (isWork)
             {
@@ -44,10 +42,10 @@ namespace Task6._6
         private static string GetRandomPhrase()
         {
             Random random = new Random();
-            string[] phrases = new string[4] { 
-                "Добро пожаловать, путник. Что желаешь?", 
-                "Дешевые зелья! дешевые зелья! О, путник, что желаешь?", 
-                "Только у меня ты можешь купить камень силы. Что желаешь?", 
+            string[] phrases = new string[4] {
+                "Добро пожаловать, путник. Что желаешь?",
+                "Дешевые зелья! дешевые зелья! О, путник, что желаешь?",
+                "Только у меня ты можешь купить камень силы. Что желаешь?",
                 "Хм... Что тебе нужно?" };
             string randomPhrase = phrases[random.Next(0, phrases.Length)];
             return randomPhrase;
@@ -58,19 +56,9 @@ namespace Task6._6
     {
         private List<Product> _products = new List<Product>();
 
-        public void AddItems()
+        public Trader()
         {
-            _products.Add(new Product("Еда", 5));
-            _products.Add(new Product("Вода", 1));
-            _products.Add(new Product("Лук", 60));
-            _products.Add(new Product("Меч", 10));
-            _products.Add(new Product("Сумка", 25));
-            _products.Add(new Product("Зелье", 5));
-            _products.Add(new Product("Зелье", 5));
-            _products.Add(new Product("Доспехи", 100));
-            _products.Add(new Product("Стрелы х60", 80));
-            _products.Add(new Product("Двуручный меч", 40));
-            _products.Add(new Product("Камень силы", 500));
+            AddItems();
         }
 
         public void ShowProducts()
@@ -89,62 +77,72 @@ namespace Task6._6
         {
             Console.Clear();
             ShowProducts();
-            ChooseItem(player);
+
+            if (IsExistingItem(ChooseItem(), out int number) == true)
+            {
+                number -= 1;
+
+                if (CheckMoneyForBuy(number, player))
+                {
+                    if (number <= _products.Count && number >= 0)
+                    {
+                        SellItem(number, player);
+                        Console.Clear();
+                        Console.WriteLine("Товар успешно куплен!");
+                        Console.WriteLine("У вас осталось золота:" + player.Money);
+                    }
+                }
+            }
         }
 
-        private void ChooseItem(Player player)
+        private void AddItems()
+        {
+            _products.Add(new Product("Еда", 5));
+            _products.Add(new Product("Вода", 1));
+            _products.Add(new Product("Лук", 60));
+            _products.Add(new Product("Меч", 10));
+            _products.Add(new Product("Сумка", 25));
+            _products.Add(new Product("Зелье", 5));
+            _products.Add(new Product("Зелье", 5));
+            _products.Add(new Product("Доспехи", 100));
+            _products.Add(new Product("Стрелы х60", 80));
+            _products.Add(new Product("Двуручный меч", 40));
+            _products.Add(new Product("Камень силы", 500));
+        }
+
+        private string ChooseItem()
         {
             Console.WriteLine("Чтобы купить товар, введите его порядковый номер:");
             string userInput = Console.ReadLine();
-            CheckExistingItem(userInput, player);
+            return userInput;
         }
 
-        private void CheckExistingItem(string userInput, Player player)
+        private bool IsExistingItem(string userInput, out int number)
         {
-            bool isRepeating = true;
+            bool isFound = false;
 
-            while (isRepeating)
+            if (int.TryParse(userInput, out number))
             {
-                if (int.TryParse(userInput, out int number))
+                if (number > _products.Count || number < 0)
                 {
-                    if (number > _products.Count || number < 0)
-                    {
-                        Console.WriteLine("Такого товара у продавца!");
-                    }
-                    else
-                    {
-                        number -= 1;
-
-                        if (CheckMoneyForBuy(number, player))
-                        {
-                            if (number <= _products.Count && number >= 0)
-                            {
-                                SellItem(number, player);
-                                Console.Clear();
-                                Console.WriteLine("Товар успешно куплен!");
-                                Console.WriteLine("У вас осталось золота:" + player.Money);
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            return;
-                        }
-                    }
+                    Console.WriteLine("Такого товара у продавца!");
                 }
                 else
                 {
-                    Console.WriteLine("Данные некорректны");
+                    isFound = true;
                 }
-
-                Console.WriteLine("Чтобы купить товар, введите его порядковый номер:");
-                userInput = Console.ReadLine();
             }
+            else
+            {
+                Console.WriteLine("Данные некорректны");
+            }
+
+            return isFound;
         }
 
         private void SellItem(int number, Player player)
         {
-            player.Money -= _products[number].Price;
+            player.TakeOffMoney(_products, number);
             player.AddInventoryItem(_products, number);
             _products.RemoveAt(number);
         }
@@ -164,7 +162,12 @@ namespace Task6._6
     {
         private List<Product> _inventory = new List<Product>();
 
-        public int Money { get; set; }
+        public int Money { get; private set; }
+
+        public Player()
+        {
+            Money = 500;
+        }
 
         public void ShowInventory()
         {
@@ -188,6 +191,11 @@ namespace Task6._6
         public void AddInventoryItem(List<Product> _products, int number)
         {
             _inventory.Add(_products[number]);
+        }
+
+        public void TakeOffMoney(List<Product> items, int number)
+        {
+            Money -= items[number].Price;
         }
     }
 
