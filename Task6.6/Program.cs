@@ -22,7 +22,7 @@ namespace Task6._6
                     case "1":
                         trader.SellProduct(player);
                         break;
-                    case "2":
+                    case "2": 
                         player.ShowInventory();
                         break;
                     case "3":
@@ -82,7 +82,7 @@ namespace Task6._6
             {
                 number -= 1;
 
-                if (CheckMoneyForBuy(number, player))
+                if (IsMoneyForBuy(number, player))
                 {
                     if (number <= _products.Count && number >= 0)
                     {
@@ -142,11 +142,10 @@ namespace Task6._6
 
         private void SellItem(int number, Player player)
         {
-            player.TakeOffMoney(_products, number);
-            player.AddInventoryItem(_products, number);
+            player.BuyItem(_products, number);      
             _products.RemoveAt(number);
         }
-        private bool CheckMoneyForBuy(int number, Player player)
+        private bool IsMoneyForBuy(int number, Player player)
         {
             if (player.Money < _products[number].Price)
             {
@@ -188,14 +187,10 @@ namespace Task6._6
             Console.WriteLine("Количество золотых в сумке: " + Money);
         }
 
-        public void AddInventoryItem(List<Product> _products, int number)
+        public void BuyItem(List<Product> _products, int number)
         {
             _inventory.Add(_products[number]);
-        }
-
-        public void TakeOffMoney(List<Product> items, int number)
-        {
-            Money -= items[number].Price;
+            Money -= _products[number].Price;
         }
     }
 
