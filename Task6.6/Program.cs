@@ -52,31 +52,16 @@ namespace Task6._6
         }
     }
 
-    class Trader
+    class Trader : Person
     {
-        private List<Product> _products = new List<Product>();
-
         public Trader()
         {
             AddItems();
         }
 
-        public void ShowProducts()
-        {
-            Console.Clear();
-
-            for (int i = 0; i < _products.Count; i++)
-            {
-                _products[i].ShowInfo((i + 1));
-            }
-
-            Console.WriteLine();
-        }
-
         public void SellProduct(Player player)
         {
             Console.Clear();
-            ShowProducts();
 
             if (IsExistingItem(ChooseItem(), out int number) == true)
             {
@@ -84,7 +69,7 @@ namespace Task6._6
 
                 if (IsMoneyForBuy(number, player))
                 {
-                    if (number <= _products.Count && number >= 0)
+                    if (number <= Inventory.Count && number >= 0)
                     {
                         SellItem(number, player);
                         Console.Clear();
@@ -97,17 +82,17 @@ namespace Task6._6
 
         private void AddItems()
         {
-            _products.Add(new Product("Еда", 5));
-            _products.Add(new Product("Вода", 1));
-            _products.Add(new Product("Лук", 60));
-            _products.Add(new Product("Меч", 10));
-            _products.Add(new Product("Сумка", 25));
-            _products.Add(new Product("Зелье", 5));
-            _products.Add(new Product("Зелье", 5));
-            _products.Add(new Product("Доспехи", 100));
-            _products.Add(new Product("Стрелы х60", 80));
-            _products.Add(new Product("Двуручный меч", 40));
-            _products.Add(new Product("Камень силы", 500));
+            Inventory.Add(new Product("Еда", 5));
+            Inventory.Add(new Product("Вода", 1));
+            Inventory.Add(new Product("Лук", 60));
+            Inventory.Add(new Product("Меч", 10));
+            Inventory.Add(new Product("Сумка", 25));
+            Inventory.Add(new Product("Зелье", 5));
+            Inventory.Add(new Product("Зелье", 5));
+            Inventory.Add(new Product("Доспехи", 100));
+            Inventory.Add(new Product("Стрелы х60", 80));
+            Inventory.Add(new Product("Двуручный меч", 40));
+            Inventory.Add(new Product("Камень силы", 500));
         }
 
         private string ChooseItem()
@@ -123,7 +108,7 @@ namespace Task6._6
 
             if (int.TryParse(userInput, out number))
             {
-                if (number > _products.Count || number < 0)
+                if (number > Inventory.Count || number < 0)
                 {
                     Console.WriteLine("Такого товара у продавца!");
                 }
@@ -142,12 +127,13 @@ namespace Task6._6
 
         private void SellItem(int number, Player player)
         {
-            player.BuyItem(_products, number);      
-            _products.RemoveAt(number);
+            player.BuyItem(Inventory, number);
+            Inventory.RemoveAt(number);
         }
+
         private bool IsMoneyForBuy(int number, Player player)
         {
-            if (player.Money < _products[number].Price)
+            if (player.Money < Inventory[number].Price)
             {
                 Console.WriteLine("Недостаточно золотых для покупки товара.");
                 return false;
@@ -157,10 +143,8 @@ namespace Task6._6
         }
     }
 
-    class Player
+    class Player : Person
     {
-        private List<Product> _inventory = new List<Product>();
-
         public int Money { get; private set; }
 
         public Player()
@@ -172,11 +156,11 @@ namespace Task6._6
         {
             Console.Clear();
 
-            if (_inventory.Count > 0)
+            if (Inventory.Count > 0)
             {
-                for (int i = 0; i < _inventory.Count; i++)
+                for (int i = 0; i < Inventory.Count; i++)
                 {
-                    _inventory[i].ShowInfo((i + 1));
+                    Inventory[i].ShowInfo((i + 1));
                 }
             }
             else
@@ -189,8 +173,25 @@ namespace Task6._6
 
         public void BuyItem(List<Product> _products, int number)
         {
-            _inventory.Add(_products[number]);
+            Inventory.Add(_products[number]);
             Money -= _products[number].Price;
+        }
+    }
+
+    class Person
+    {
+        protected List<Product> Inventory = new List<Product>();
+
+        public void ShowProducts()
+        {
+            Console.Clear();
+
+            for (int i = 0; i < Inventory.Count; i++)
+            {
+                Inventory[i].ShowInfo((i + 1));
+            }
+
+            Console.WriteLine();
         }
     }
 
